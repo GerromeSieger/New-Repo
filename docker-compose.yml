@@ -1,0 +1,85 @@
+version: "3.8"
+
+services:
+  server:
+    image: gerrome/pern-store-app_server:1
+    container_name: pern-store-server
+    #build:
+    #  context: ./server
+    #  dockerfile: Dockerfile
+    # restart: always
+    #env_file:
+    #  - ./server/.env
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=pernstore
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      # Maps the server directory to
+      # the working directory in the container
+      - ./server:/usr/src/app
+      # Maps the node_modules directory to
+      # the working directory in the container
+      # and also fixes bcrypt error
+      - /usr/src/app/node_modules
+    ports:
+      - 9000:9000
+    depends_on:
+      - postgres
+  client:
+    image: gerrome/pern-store-app_client:1 
+    container_name: pern-store-client
+    restart: unless-stopped
+   # env_file:
+   #   - ./client/.env
+   # build:
+    #  context: ./client
+     # dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    volumes:
+      - ./client:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - server
+
+  nginx:
+    image: gerrome/pern-store-app_nginx:1
+    container_name: nginx-container
+    ports:
+      - 80:80
+    depends_on:
+      - client      
+
+  postgres:
+    container_name: pern-store-db 
+    image: gerrome/pern-store-app_postgres:1
+    restart: always
+    env_file:
+      - ./server/.env
+    environment:
+      # other environment variables is in ./server/.env file
+      - POSTGRES_DB=pernstore
+      - POSTGRES_USER=postgres      
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 7890:5432
+    volumes:
+      - ./db:/var/lib/postgresql/data
+      # When the PostgreSQL container is started it will run any scripts
+      # provided in the `docker-entrypoint-initdb.d` directory
+      # seed the database with the init.sql file
+      - ./server/config/init.sql:/docker-entrypoint-initdb.d/init.sql
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "dhatguy@mail.com"
+      PGADMIN_DEFAULT_PASSWORD: "qwertyuiop"
+    ports:
+      - "16543:80"
+    depends_on:
+      - postgres
+volumes:
+  db:
+    driver: local
