@@ -3,7 +3,7 @@ version: "3.8"
 services:
   server:
     image: pern-store-server
-    container_name: pern-store-server
+    container_name: pern-store-serverrrrr
     build:
       context: ./server
       dockerfile: Dockerfile.dev
