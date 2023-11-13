@@ -1,5 +1,5 @@
 {
-  "name": "pern-store-1",
+  "name": "pern-store",
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
